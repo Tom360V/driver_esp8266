@@ -1,0 +1,38 @@
+STATE INIT::START
+{
+    //Event,    Guard;  	Actions; 					NextState
+    {Start;  	;       	SetDisconnected,ResetESP;	InitESP	}
+}
+
+STATE InitESP
+{
+    //Event,    Guard;  	Actions;                    NextState
+    {EspUp;  	;       	ResetInit, SendNextCmd;     InitESP				}
+    {Succeed;   MoreInit;   SendNextCmd;    			InitESP    		 	}
+    {Succeed;   ConnectReceived;   OpenConnection;		WaitTillConnected	}
+    {Succeed;   ;           ;		   					ReadyNotConnected	}
+    {Failed;    ;           ResetInit, SendNextCmd; 	InitESP    			}
+    {Timeout;   ;           ResetInit, SendNextCmd;		InitESP				}
+}
+
+STATE ReadyNotConnected
+{
+    //Event,    Guard;      Actions;        			NextState
+	{Connect;	;			OpenConnection;				WaitTillConnected	}
+}
+
+STATE WaitTillConnected
+{
+    //Event,    Guard;      Actions;        			NextState
+	{Succeed;	;			SetConnected;				Connected			}
+//	{Failed;	;			SetDisconnected;			ReadyNotConnected	}
+	{Disconnect	;			SetDisconnected;			ReadyNotConnected	}
+}
+
+STATE Connected
+{
+    //Event,    Guard;      Actions;        			NextState
+    {Succeed;	;   		SetReadyToSend;				Connected			}
+    {Failed;	;   		;							Connected			}
+	{Disconnect	;			SetDisconnected;			ReadyNotConnected	}
+}
