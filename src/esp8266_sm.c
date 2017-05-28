@@ -9,15 +9,24 @@
 #include "uart.h"
 #include "esp8266_sm.h"
 #include "esp8266_sm_private.h"
-#include "TEMP.h"
 #include "util/atomic.h"
 #define SINGLE_CONNECTION_MODE (1)
 
 //static char myName[] = "esp8266";
 //static char serverIp[] = "192.168.0.104";
 
-const uint8_t msg_AT[]              = "AT";
-const uint8_t msg_RESET[]           = "AT+RST";       //Reset
+/* * * * CONFIGURE ESP8266 * * *
+ * You can do this once using ftdi cable and some terminal
+ * The ESP8266 will remember his last used accesspoint
+ * AT+UART_DEF=19200,8,1,0,0        //Change uart settings
+ * AT+RST
+ * AT+CWMODE=1                      //Set in 'station' mode
+ * AT+CWJAP="[SSID]","[password]"   //Connect to accesspoint
+ * AT+CIFSR                         //Check your ip-, and mac-address
+ */
+
+const uint8_t msg_AT[]                  = "AT";
+const uint8_t msg_RESET[]               = "AT+RST";       //Reset
 #ifdef SINGLE_CONNECTION_MODE
     const uint8_t msg_ConnectToServer[] = "AT+CIPSTART=\"TCP\",\"192.168.1.50\",1883";
     const uint8_t msg_CIPSEND[]         = "AT+CIPSEND=";
@@ -29,10 +38,10 @@ const uint8_t msg_RESET[]           = "AT+RST";       //Reset
     const uint8_t msg_CIPMODE[]         = "AT+CIPMODE=0";   //0: normal mode, 1:unvarnished(?)
     const uint8_t msg_CIPMUX[]          = "AT+CIPMUX=1";    //Allow multiple connections
 #endif
-const uint8_t endOfMsg[2]           = "\r\n";
+const uint8_t endOfMsg[2]               = "\r\n";
 
-const uint8_t msg_ATE0[]        = "ATE0";           //Echo off
-const uint8_t msg_CWMODE[]      = "AT+CWMODE=1";    //Set Station-mode, node can connect to an accesspoint
+const uint8_t msg_ATE0[]                = "ATE0";           //Echo off
+const uint8_t msg_CWMODE[]              = "AT+CWMODE=1";    //Set Station-mode, node can connect to an accesspoint
 
 #define NOF_INIT_CMDS   (4)
 
@@ -164,7 +173,7 @@ void esp8266_ResetESP(void *p)
     // Possible during startup of the ATmage, the TX pin was in a undefined state and
     // could cause some garbage on the line.
     // To make a defined start, send a command which may fail before we send the RESET
-    // This to make sure the REST is currectly executed!
+    // This to make sure the REST is currently executed!
     
     esp8266_WriteCommand((uint8_t *)msg_AT,    0);  //May fail!  :)
     
